@@ -1,0 +1,15 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Payout from "./_Cart.vue"
+import CartEmpty from "./_components/CartEmpty.astro";
+
+---
+
+<BaseLayout title="Mi carrito">
+  <noscript>
+    Activa javascript para acceder al carrito.
+  </noscript>
+  <Payout client:load clientApiUrl={import.meta.env.CLIENT_API_URL}>
+    <CartEmpty></CartEmpty>
+  </Payout>
+</BaseLayout>

@@ -1,0 +1,54 @@
+---
+import ProductCard from "../components/astro/ProductCard.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BaseButton from "../components/vue/BaseButton.vue";
+import BaseSection from "../components/astro/BaseSection.astro";
+import { ProductService } from "../services/product.service";
+const productService = new ProductService(import.meta.env.SSR_API_URL)
+const products = await productService.find();
+const topProducts = await productService.findTopProducts();
+---
+
+<BaseLayout title="Shop">
+	<main class="py-2 space-y-4">
+
+		<BaseSection width="lg" title="Productos destacados" subtitle="Los productos mas solicitados durante este mes">
+			<div class="flex flex-col">
+				<div class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+
+					{topProducts.map((product, index)=>(
+						<ProductCard position={index + 1}  prev="destacado" id={product.id} title={product.name} cost={product.value} image={product.image}></ProductCard>
+					))}
+				</div>
+		
+				<BaseButton class:list={'self-center'}>
+					<span class="w-max">Ver mas</span>
+					<i class="bi bi-chevron-right"></i>
+				</BaseButton>
+			</div>
+		</BaseSection>
+
+		<BaseSection width="lg" title="Lo mas reciente" subtitle="Los productos mas Recientes">
+			<div class="flex flex-col">
+				<div class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+
+					{products.map((product)=>(
+						<ProductCard  id={product.id} title={product.name} cost={product.value} image={product.image}></ProductCard>
+					))}
+				</div>
+		
+				<BaseButton class:list={'self-center'}>
+					<span class="w-max">Ver mas</span>
+					<i class="bi bi-chevron-right"></i>
+				</BaseButton>
+			</div>
+		</BaseSection>
+
+		<BaseSection width="lg" title="Seccion de ejemplo" subtitle="Un componente reutilizable y ugly.">
+			<div>
+				Helows arisu
+			</div>
+		</BaseSection>
+	</main>
+</BaseLayout>
+

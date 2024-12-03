@@ -1,0 +1,47 @@
+---
+import { ViewTransitions } from "astro:transitions";
+import Navbar from "../features/navbar/Navbar.astro";
+
+interface Props {
+  title: string
+}
+const { title } = Astro.props;
+---
+
+<html lang="es" >
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+		<ViewTransitions></ViewTransitions>
+		<script>
+			import '../scripts/client-setup'
+		</script>
+	</head>
+	<body class="bg-[#DDE4EE] grid min-h-dvh grid-rows-[1fr_auto]">
+			<Navbar></Navbar>
+
+    <div class="mt-14">
+      <slot></slot>
+    </div>
+		<div class="bg-rose-500 text-center">
+			Este es un sitio en desarrollo, usalo bajo tu responsabilidad
+		</div>
+		
+	</body>
+</html>
+
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+.overpass {
+font-family: "Overpass", sans-serif;
+}
+
+.poppins {
+	font-family: "Poppins", sans-serif;
+}
+</style>

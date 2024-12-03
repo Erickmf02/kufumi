@@ -1,0 +1,40 @@
+---
+import type { Product } from '../../services/product.service'
+
+interface Props {
+  item: {
+    product: Product,
+    stock: number,
+    value: number
+  }
+}
+const {
+  item
+} = Astro.props;
+---
+
+<article class="grid grid-cols-12 gap-2" aria-label="Detalle de compra">
+  <!-- Imagen del producto -->
+  <div class="col-span-1">
+    <figure class="aspect-square">
+      <img 
+        class="w-full h-full object-cover rounded-lg" 
+        src={item.product.image}
+        alt={`Imagen del producto ${item.product.name}`}>
+    </figure>
+  </div>
+  
+  <!-- Información del producto -->
+  <div class="col-span-11 flex items-center justify-between">
+    <div>
+      <!-- Nombre del producto -->
+      <h3 class="font-medium text-lg">{item.product.name}</h3>
+      <!-- Cantidad comprada -->
+      <p class="text-sm text-slate-500">Cantidad: {item.stock}</p>
+    </div>
+    <!-- Precio del producto -->
+    <p class="font-medium text-lg" aria-label="Precio del producto">
+      ${item.value.toLocaleString()} CLP
+    </p>
+  </div>
+</article>

@@ -1,0 +1,35 @@
+---
+interface Props {
+  prev?: string
+  id: number
+  title: string
+  cost: number
+  image?: string
+  inOffer?: boolean
+  position?: number
+}
+const { id, title, image, cost, position, inOffer = false, prev } = Astro.props;
+---
+<a href={`/product/${id}`} >
+  <article class="rounded-3xl transition-all active:scale-95">
+    <div class="w-full  aspect-square overflow-hidden relative">
+      {position&&
+      <div class="absolute top-0 bg-rose-500 rounded-full size-8 flex justify-center items-center z-10 text-white poppins m-2">{position}</div>
+      }
+      <img 
+        transition:name={`${prev ? prev + "-": ""}product-${id}-image`}
+        class="w-full h-full object-cover rounded-3xl"
+        src={image ? image : 'https://i.ebayimg.com/images/g/RjMAAOSw0lxmFyVI/s-l1200.jpg'} 
+        alt=""
+      >
+    </div>
+    <div class="text-center p-2">
+      <h4>
+        {title}
+      </h4>
+      <h5 class="text-rose-500 font-medium text-lg">
+        ${cost.toLocaleString()} CLP
+      </h5>
+    </div>
+  </article>
+</a>

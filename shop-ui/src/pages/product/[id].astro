@@ -1,0 +1,74 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import CartButton from "../../components/vue/CartButton.vue";
+import Carrousel from "../../components/vue/Carrousel.vue"
+import BaseButton from "../../components/vue/BaseButton.vue";
+import { ProductService } from "../../services/product.service";
+
+const { id } = Astro.params;
+const productService = new ProductService(import.meta.env.SSR_API_URL)
+let product = null;
+let error = null;
+
+try {
+  product = await productService.findOne(parseInt(id!));
+} catch (err) {
+  error = "No se pudo cargar el producto. Por favor, inténtalo de nuevo más tarde.";
+}
+---
+
+<BaseLayout title={error ? "Error" : product!.name}>
+  {error ? (
+    <p>{error}</p>
+  ) : (
+    <>
+      <div class="py-2">
+        <div class="flex justify-center p-4 bg-slate-50 shadow-md">
+          <div class="max-w-screen-lg w-full grid grid-cols-12 gap-6">
+            {/* Galería de imágenes */}
+            <div class="col-span-12 md:col-span-5">
+              <div class="aspect-square">
+                <Carrousel productId={product!.id} images={[product!.image, ...product!.images]} client:load></Carrousel>
+              </div>
+            </div>
+
+            {/* Información del producto */}
+            <div class="col-span-12 md:col-span-7 flex flex-col">
+              <h1 class="text-2xl font-semibold mb-2">{product!.name}</h1>
+              <p class="text-gray-600 mb-4">{product!.description}</p>
+
+              {/* Precio */}
+              <div class="text-lg font-bold text-rose-500 mb-4">
+                {product!.value.toLocaleString()} CLP
+              </div>
+
+              {/* Disponibilidad */}
+              <p class={`text-sm font-medium mb-6 ${product!.stock > 0 ? '' : 'text-red-500'}`}>
+                {product!.stock > 0 ? `En stock: ${product!.stock}` : "Agotado"}
+              </p>
+
+              {/* Botón de carrito */}
+              <CartButton product={product!} client:only="vue">
+                <BaseButton slot="fallback" variant="principal-outlined" disabled>Cargando</BaseButton>
+              </CartButton>
+
+              {/* Mensaje adicional si no hay stock */}
+              {product!.stock === 0 && (
+                <p class="mt-4 text-sm text-gray-500">
+                  Este producto actualmente no está disponible. Por favor, revisa más tarde.
+                </p>
+              )}
+              <div>
+                <strong>To-do</strong>
+                <ol class="list-decimal">
+                  <li>Seccion de detalles del personaje del producto SSR, enlaces a "Serie", "Ver mas productos del personaje", "Productos mas populares de personaje"</li>
+                  <li>Seccion de valoraciones del product Server Island</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  )}
+</BaseLayout>

@@ -1,0 +1,105 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ErrorMessage from "../../components/astro/ErrorMessage.astro"; // Importa el componente de error
+import { OrderService } from "../../services/order.service";
+import CartItem from "./_CartItem.astro";
+
+const { id } = Astro.params;
+const token = Astro.url.searchParams.get('token');
+
+const orderService = new OrderService(import.meta.env.SSR_API_URL);
+
+let order: any = null;
+let error = null;
+
+try {
+  if (!id || !token) {
+    throw new Error("Faltan parámetros requeridos: id o token.");
+  }
+
+  const parsedId = parseInt(id);
+  if (isNaN(parsedId)) {
+    throw new Error("El ID proporcionado no es un número válido.");
+  }
+
+  if (parsedId < 1) {
+    throw new Error("El ID debe ser un número mayor o igual a 1.");
+  }
+
+  order = await orderService.findOne(parsedId, token);
+  if (!order) error = "Ocurrió un error desconocido.";
+} catch (err: any) {
+  error = err.response?.data?.message || err.message || "Ocurrió un error desconocido.";
+  console.error("Error al obtener la orden:", error);
+}
+
+const translateStatus = (status: number) => {
+  switch (status) {
+    case 0:
+      return "Esperando pago";
+    case 1:
+      return "Pagada";
+    case 2:
+      return "Fallida";
+    default:
+      return "Estado desconocido";
+  }
+};
+---
+
+<BaseLayout title="Voucher - Detalles de compra">
+  {error ? (
+    <ErrorMessage message={error} />
+  ) : order && (
+    <main class="p-2 flex flex-col gap-2 items-center">
+      <section class="p-4 bg-slate-100 rounded-lg shadow-md max-w-screen-md w-full" aria-labelledby="order-title">
+        <h1 id="order-title" class="text-2xl font-bold mb-2">Orden #{order.id}</h1>
+        
+        <div class="grid grid-cols-12 gap-4">
+          <section class="col-span-12 md:col-span-6" aria-labelledby="order-details-title">
+            <h2 id="order-details-title" class="text-lg font-medium mb-2">Detalles de la orden</h2>
+            <ul class="space-y-1">
+              <li><span class="font-medium">Fecha:</span> {order.createdAt}</li>
+              <li><span class="font-medium">Estado:</span> {translateStatus(order.status)}</li>
+            </ul>
+          </section>
+          
+          <section class="col-span-12 md:col-span-6" aria-labelledby="client-details-title">
+            <h2 id="client-details-title" class="text-lg font-medium mb-2">Detalles del cliente</h2>
+            <ul class="space-y-1">
+              <li><span class="font-medium">Nombre:</span> {order.client.name}</li>
+              <li><span class="font-medium">RUT:</span> {order.client.rut}</li>
+              <li><span class="font-medium">Email:</span> {order.client.email}</li>
+              <li><span class="font-medium">Celular:</span> {order.client.phone}</li>
+              <li><span class="font-medium">Comuna:</span> {order.client.city}</li>
+              <li><span class="font-medium">Dirección:</span> {order.client.address}</li>
+              {order.client.department && (
+                <li><span class="font-medium">Departamento:</span> {order.client.department}</li>
+              )}
+            </ul>
+          </section>
+        </div>
+      </section>
+
+
+
+      <section class="p-4 bg-slate-100 rounded-lg shadow-md max-w-screen-md w-full" aria-labelledby="cart-title">
+        <h2 id="cart-title" class="text-xl font-semibold mb-4">Carrito de compras</h2>
+        
+        <div class="space-y-2">
+          {order.items.map((item: any) => (
+            <CartItem item={item}></CartItem>
+          ))}
+        </div>
+        
+        <div class="mt-4 flex items-center justify-between bg-slate-200 rounded-lg py-2 px-4 text-black">
+          <p class="text-lg" id="total-label">Total</p>
+          <p class="text-lg font-bold" aria-labelledby="total-label">
+            {`$${order.value.toLocaleString()} CLP`}
+          </p>
+        </div>
+      </section>
+
+    </main>
+  )}
+</BaseLayout>
