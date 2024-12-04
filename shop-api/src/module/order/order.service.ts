@@ -34,7 +34,7 @@ export class OrderService {
       value: calculateOrderValue(items)
     });
 
-    const payout = await this.transbankService.create(order, 'http://localhost:3000/order/payout')
+    const payout = await this.transbankService.create(order, `${process.env.CLIENT_API_URL}/order/payout`)
 
     return {
       payout,
