@@ -3,9 +3,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import Payout from "./_Cart.vue"
 import CartEmpty from "./_components/CartEmpty.astro";
 
+const title = "Kufumi - Mi carrito";
+const description = `Administra tu carrito aquí`
 ---
 
-<BaseLayout title="Mi carrito">
+<BaseLayout title={title} description={description} robots="noindex, nofollow">
   <noscript>
     Activa javascript para acceder al carrito.
   </noscript>

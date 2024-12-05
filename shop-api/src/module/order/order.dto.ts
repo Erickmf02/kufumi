@@ -58,7 +58,7 @@ class OrderItemDto {
 
   @IsInt()
   @IsPositive()
-  stock: number
+  quantity: number
 }
 
 

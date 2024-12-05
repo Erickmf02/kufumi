@@ -1,0 +1,55 @@
+---
+import {type PopularProduct} from "../../services/product.service"
+
+
+interface Props {
+  popularProduct: PopularProduct
+}
+const { popularProduct } = Astro.props;
+const {id, image, name, value, position} = popularProduct;
+
+function getClass() {
+ let classes =  `relative rounded-full size-8 flex justify-center items-center text-white poppins `
+ switch(position){
+  case 1:
+    classes += "bg-rose-500 font-bold"
+    break;
+  case 2:
+    classes += "bg-rose-500 bg-opacity-90 font-semibold "
+    break;
+  case 3:
+    classes += "bg-rose-500 bg-opacity-80 font-medium "
+    break;
+  default:
+    classes += "bg-rose-500 bg-opacity-60 "
+ }
+ return classes;
+}
+---
+<a href="#" >
+  <article class="rounded-3xl transition-all active:scale-95">
+    <div class="w-full aspect-square relative">
+      {position&&
+      <div class="absolute top-0 z-10 m-2 flex items-center justify-center"> 
+        {position == 1 && (
+          <div class="animate-ping size-full absolute bg-rose-500 rounded-full"></div>
+        )}
+        <div class={getClass()}>{position}</div>
+      </div>
+      }
+      <img 
+        class="w-full h-full object-cover rounded-3xl"
+        src={image} 
+        alt=""
+      >
+    </div>
+    <div class="text-center p-2">
+      <h4>
+        {name}
+      </h4>
+      <h5 class="text-rose-500 font-medium text-lg">
+        ${value.toLocaleString()} CLP
+      </h5>
+    </div>
+  </article>
+</a>

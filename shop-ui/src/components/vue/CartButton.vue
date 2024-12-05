@@ -25,7 +25,7 @@ function handleOnClick() {
   }else{
     cartService.setCart({
       ...cart,
-      items: [{stock: 1, product},...cart.items]
+      items: [{quantity: 1, product},...cart.items]
     })
   }
 }

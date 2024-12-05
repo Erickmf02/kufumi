@@ -9,6 +9,9 @@ import { JwtService } from "@nestjs/jwt";
 import { calculateOrderValue, generarCadenaAleatoria } from "./order.util";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { OrderStatus } from "./enums/OrderStatus";
+import { hasMissingStock } from "../product/product.util";
+import { ProductNotAvailableException } from "../product/errors/product-not-available.exception";
+import { User } from "../user/entities/user";
 
 @Injectable()
 export class OrderService {
@@ -17,33 +20,45 @@ export class OrderService {
     private readonly orderRepository: Repository<Order>,
     private readonly productService: ProductService,
     private readonly transbankService: TransbankService,
-    private readonly jwtService: JwtService,
     private readonly eventEmitter: EventEmitter2
   ){}
 
-  async create(dto: CreateOrderDto) {
-    const { items: itemsDto, client, paymentProvider } = dto;
-  
-    const items = await this.productService.verifyStock(itemsDto);
-  
-    const order = await this.orderRepository.save({
-      paymentProvider,
-      token: generarCadenaAleatoria(16),
-      client,
-      items,
-      value: calculateOrderValue(items)
-    });
+    async handleCreate(dto: CreateOrderDto, user?: User) {
+      const { items: itemsDto, client, paymentProvider } = dto;
+    
+      const productStockResponse = await this.productService.getStockAvailability(itemsDto);
+      if(hasMissingStock(productStockResponse)){
+        throw new ProductNotAvailableException(productStockResponse)
+      }
+    
+      const items = productStockResponse.map(i => ({
+        quantity: i.quantity,
+        value: i.product.value,
+        product: i.product
+      }));
 
-    const payout = await this.transbankService.create(order, `${process.env.CLIENT_API_URL}/order/payout`)
+      const orderData = {
+        paymentProvider,
+        token: generarCadenaAleatoria(16),
+        client,
+        items,
+        value: calculateOrderValue(items),
+        user: undefined
+      };
+      
+      if(user){
+        orderData.user = user;
+      }
 
-    return {
-      payout,
-      order: await this.orderRepository.findOne({
-        where: { id: order.id },
-        relations: ['items', 'items.product', 'client'],
-      })
+      const order = await this.orderRepository.save(orderData);
+
+      const payout = await this.transbankService.create(order, `${process.env.CLIENT_API_URL}/order/payout`)
+
+      return {
+        payout,
+        order: await this.findOneById(order.id)
+      }
     }
-  }
   
 
   async find(){
@@ -52,72 +67,48 @@ export class OrderService {
 
   async handleFindOne(id: number, token?: string){
     // Falta añadir que los admin tengan permiso absoluto.
-    if(!token){
-      throw new UnauthorizedException('Token is missing')
+    if (!token) {
+      throw new UnauthorizedException('Falta el token de autenticación.');
     }
-    const order = await this.findOne(id);
-    if(order.token != token){
-      throw new UnauthorizedException('Bad token')
+    const order = await this.findOneById(id);
+    if (order.token !== token) {
+      throw new UnauthorizedException('El token proporcionado no es válido.');
     }
     return order;
   }
 
-  async findOne(id: number) {
-    const entity = await this.orderRepository.findOne({
+  async findOneById(id: number) {
+    const order = await this.orderRepository.findOne({
       where: { id },
       relations: ['items', 'items.product', 'client']
-    })
-    if(!entity) throw new NotFoundException();
-    return entity
-  }
-
-  async completeTransaction(token: string): Promise<Order> {
-    const order = await this.orderRepository.findOne({
-      where: {
-        transbankOrderPayment: {
-          token: token,
-        },
-      },
-      relations: ['items', 'items.product', 'client', 'transbankOrderPayment'],
     });
-  
-    console.log('order', order);
-    console.log('status before commit', await this.transbankService.status(token));
-  
-    try {
-      await this.productService.verifyStock(
-        order.items.map(i => ({
-          id: i.product.id,
-          stock: i.stock,
-        }))
-      );
-  
-      await this.handlePaymentSuccess(token, order);
-    } catch (error) {
-      await this.handlePaymentFailure(token, order);
-    }
-    return await this.findOne(order.id);
+    if (!order) throw new NotFoundException(`El pedido con ID ${id} no se encontró.`);
+    return order;
   }
 
-  // Private methods
-  
-  private async handlePaymentSuccess(token: string, order: Order) {
+  async handlePayout(token: string): Promise<string> {
+    const order = await this.orderRepository.findOne({
+      where: { transbankOrderPayment: { token } },
+      relations: ['items', 'items.product', 'client', 'transbankOrderPayment']
+    });
+    let url: string;
     await this.transbankService.commit(token);
-    // Mark order as paid
-    order.status = OrderStatus.PAID;
+
+    const productAvailabilityResponse = await this.productService.getStockAvailability(order.items);
+
+    if(hasMissingStock(productAvailabilityResponse)){
+      await this.transbankService.refund(token, order.value);
+      order.status = OrderStatus.FAILED;
+
+      url = `${process.env.CLIENT_URL}/voucher/${order.id}?token=${order.token}&error=No hay suficiente stock`;
+    } else {
+      order.status = OrderStatus.PAID;
+      await this.eventEmitter.emitAsync('order.paid', order);
+      
+      url = `${process.env.CLIENT_URL}/voucher/${order.id}?token=${order.token}`;
+    }
     await this.orderRepository.save(order);
-  
-    // Emit event for the paid order
-    await this.eventEmitter.emitAsync('order.paid', order);
-  
-    console.log('status after commit', await this.transbankService.status(token));
-  }
-  
-  private async handlePaymentFailure(token: string, order: Order) {
-    await this.transbankService.commit(token);
-    // Refund the transaction due to stock failure
-    await this.transbankService.refund(token, order.value);
-  
-    console.log('status after refund', await this.transbankService.status(token));
+
+    return url;
   }
 }

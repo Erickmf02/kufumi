@@ -1,7 +1,9 @@
-import { Body, ClassSerializerInterceptor, Controller, Get, Param, Post, Query, Redirect, UseInterceptors } from "@nestjs/common";
+import { Body, ClassSerializerInterceptor, Controller, Get, Param, Post, Query, Redirect, Request, UseGuards, UseInterceptors } from "@nestjs/common";
 import { OrderService } from "./order.service";
 import { CreateOrderDto } from "./order.dto";
 import { ParsePositiveIntPipe } from "src/common/pipes/parse-positive-int.pipe";
+import { OptionalAuthGuard } from "src/common/guards/optional-auth.guard";
+import { User } from "../user/entities/user";
 
 @Controller('order')
 export class OrderController{
@@ -10,10 +12,13 @@ export class OrderController{
   ) {}
 
   @Post()
+  @UseGuards(OptionalAuthGuard)
   async create(
-    @Body() dto: CreateOrderDto
+    @Body() dto: CreateOrderDto,
+    @Request() req: any
   ) {
-    return await this.orderService.create(dto);
+    const user: User | undefined = req.user;
+    return await this.orderService.handleCreate(dto);
   }
 
   @Get()
@@ -27,18 +32,14 @@ export class OrderController{
     @Query() query
   ){
     const {token_ws, TBK_TOKEN, TBK_ORDEN_COMPRA, TBK_ID_SESION  } = query;
+    let url: string;
     // transaccion exitosa
     if(token_ws){
-
-      const order = await this.orderService.completeTransaction(token_ws);
-      return {
-        url: `${process.env.CLIENT_URL}/voucher/${order.id}?token=${order.token}`
-      }
+      url = await this.orderService.handlePayout(token_ws);
     } else {
-      return {
-        url: process.env.CLIENT_URL
-      }
+      url = process.env.CLIENT_URL
     }
+    return { url }
   }
 
   @UseInterceptors(ClassSerializerInterceptor)

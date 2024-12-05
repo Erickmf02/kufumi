@@ -1,42 +1,31 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { ProductService, type Product } from '../../../services/product.service';
+import { type Product } from '../../../services/product.service';
 import ItemCard from '../../../components/vue/ItemCard.vue';
 import { cartService } from '../../../services/cart2.service';
 
 interface Props {
   clientApiUrl: string,
+  products: Product[],
   items: {
-    stock: number,
+    quantity: number,
     product: Product
   } []
 }
 
 const {
-  clientApiUrl,
-  items
+  items,
+  products
 } = defineProps<Props>();
 
-const productService = new ProductService(clientApiUrl);
 
 
-const isLoading = ref(true);
-const products = ref<Product[]>([]);
 
-
-const fetchCartProducts = async () => {
-  try {
-    const productIds = items.map((item: any) => item.product.id);
-    products.value = await productService.findMany(productIds);
-  } catch (error) {
-    console.error('Error al obtener los productos del carrito:', error);
-  }
-};
 
 const updateCartStock = () => {
   const updatedItems = items
     .map((item: any) => {
-      const product = products.value.find((p) => p.id === item.product.id);
+      const product = products.find((p) => p.id === item.product.id);
       if (!product || product.stock === 0) return null; // Eliminar si no hay producto o stock
       return {
         ...item,
@@ -52,16 +41,14 @@ const updateCartStock = () => {
 
 const totalPrice = computed(() =>
   items.reduce((sum, item) => {
-    return sum + item.product.value * item.stock
+    return sum + item.product.value * item.quantity
   }, 0)
 );
 
 
 onMounted(async ()=>{
   if(items.length > 0){
-    await fetchCartProducts()
     updateCartStock()
-    isLoading.value = false;
   }
 })
 
@@ -71,10 +58,9 @@ defineExpose({
 
 function getFormStatus(){
   return {
-    isValid: !isLoading.value,
     form: items.map((item)=>{
       return {
-        stock: item.stock,
+        quantity: item.quantity,
         id: item.product.id
       }
     })
@@ -84,10 +70,10 @@ function getFormStatus(){
 </script>
 
 <template>
-  <div v-if="!isLoading && products" class="p-4 bg-slate-50 w-full max-w-screen-md rounded-lg shadow-md">
+  <div class="p-4 bg-slate-50 w-full max-w-screen-md rounded-lg shadow-md">
     <h1 class="text-xl font-medium mb-4">Mi carrito</h1> 
     <div class="space-y-2 relative">
-      <ItemCard :product="item.product" :max="item.product.stock" :stock="item.stock" :key="item.product.id" v-for="item in items" />
+      <ItemCard :product="item.product" :max="item.product.stock" :quantity="item.quantity" :key="item.product.id" v-for="item in items" />
     </div>
     <div class="mt-4 flex items-center justify-between bg-slate-200 rounded-lg py-2 px-4 text-black">
       <p class="text-lg">

@@ -1,0 +1,30 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { UserService } from "../../services/user.service";
+
+const { id } = Astro.params;
+const userService = new UserService(import.meta.env.SSR_API_URL)
+let user = null;
+let error = null;
+
+try {
+  user = await userService.findById(parseInt(id!));
+} catch (err) {
+  error = "No se pudo cargar el usuario. Por favor, inténtalo de nuevo más tarde.";
+}
+
+const title = error ? "Error" : `Kufumi - Perfil de ${user!.username}`;
+const description = error ? "Error" : user!.username;
+---
+
+<BaseLayout title={title} description={description} robots="index, follow">
+  {error ? (
+    <p>{error}</p>
+  ) : (
+    <>
+      <div class="">
+        Perfil de { user!.username }, email { user!.email }... esta no es la version final!
+      </div>
+    </>
+  )}
+</BaseLayout>

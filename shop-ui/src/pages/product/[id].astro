@@ -4,6 +4,7 @@ import CartButton from "../../components/vue/CartButton.vue";
 import Carrousel from "../../components/vue/Carrousel.vue"
 import BaseButton from "../../components/vue/BaseButton.vue";
 import { ProductService } from "../../services/product.service";
+import CharacterSection from "../../components/astro/CharacterSection.astro";
 
 const { id } = Astro.params;
 const productService = new ProductService(import.meta.env.SSR_API_URL)
@@ -15,14 +16,17 @@ try {
 } catch (err) {
   error = "No se pudo cargar el producto. Por favor, inténtalo de nuevo más tarde.";
 }
+
+const title = error ? "Error" : `Kufumi - ${product!.name}`;
+const description = error ? "Error" : product!.shortDescription
 ---
 
-<BaseLayout title={error ? "Error" : product!.name}>
+<BaseLayout title={title} description={description} robots="index, follow">
   {error ? (
     <p>{error}</p>
   ) : (
     <>
-      <div class="py-2">
+      <div class="py-2 flex flex-col gap-4">
         <div class="flex justify-center p-4 bg-slate-50 shadow-md">
           <div class="max-w-screen-lg w-full grid grid-cols-12 gap-6">
             {/* Galería de imágenes */}
@@ -68,6 +72,9 @@ try {
             </div>
           </div>
         </div>
+        {product!.character && (
+            <CharacterSection  character={product!.character}></CharacterSection>
+          )}
       </div>
     </>
   )}

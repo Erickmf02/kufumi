@@ -4,10 +4,32 @@ export interface Product {
   id: number,
   name: string,
   description: string,
+  shortDescription: string,
   value: number,
   image: string,
   stock: number,
   images: string[]
+  character?: Character
+}
+
+export interface PopularProduct extends Product{
+  position: number,
+  total: number
+}
+
+export interface Serie {
+  id: number;
+  name: string;
+  description: string;
+}
+
+export interface Character {
+  id: number;
+  name: string;
+  description: string;
+  image: string;
+  serie: Serie;
+  products: Product[];
 }
 
 export class ProductService {
@@ -24,7 +46,7 @@ export class ProductService {
     return response.data;
   }
 
-  async findTopProducts(): Promise<Product[]>{
+  async findTopProducts(): Promise<PopularProduct[]>{
     const response = await axios.get(`${this.apiUrl}/product/top-products`);
     return response.data;
   }

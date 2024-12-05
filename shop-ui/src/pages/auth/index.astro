@@ -1,0 +1,14 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import AuthPage from "./_AuthPage.vue";
+
+const token = Astro.url.searchParams.get('token');
+---
+
+<BaseLayout title="Autenticacion" description="Cargando autenticacion" robots="noindex, nofollow">
+  {!token ? (
+    <p>No se a proporcionado un token</p>
+  ): (
+    <AuthPage client:load token={token} clientApiUrl={import.meta.env.CLIENT_API_URL}></AuthPage>
+  )}
+</BaseLayout>

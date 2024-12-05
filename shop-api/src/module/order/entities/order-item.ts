@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm"
-import { Product } from "../../product/product"
+import { Product } from "../../product/entities/product"
 import { Order } from "./order"
 
 @Entity()
@@ -8,7 +8,7 @@ export class OrderItem {
   id: number
 
   @Column()
-  stock: number
+  quantity: number
 
   @Column()
   value: number

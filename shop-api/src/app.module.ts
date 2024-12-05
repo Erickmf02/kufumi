@@ -8,18 +8,27 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TransbankModule } from './module/external/transbank/transbank.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { CharacterModule } from './module/character/character.module';
+import { UserModule } from './module/user/user.module';
 
 @Module({
   imports: [
     ProductModule,
     OrderModule,
     TransbankModule,
+    CharacterModule,
+    UserModule,
     ConfigModule.forRoot({
       isGlobal: true
     }),
     JwtModule.register({
       global: true,
+      secret: process.env.SECRET
+    }),
+    JwtModule.register({
+      global: true,
       secret: process.env.SECRET,
+      signOptions: {expiresIn: "7d"}
     }),
     EventEmitterModule.forRoot(),
     TypeOrmModule.forRoot({

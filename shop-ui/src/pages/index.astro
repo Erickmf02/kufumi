@@ -4,20 +4,23 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import BaseButton from "../components/vue/BaseButton.vue";
 import BaseSection from "../components/astro/BaseSection.astro";
 import { ProductService } from "../services/product.service";
+import PopularProductCard from "../components/astro/PopularProductCard.astro";
 const productService = new ProductService(import.meta.env.SSR_API_URL)
 const products = await productService.find();
 const topProducts = await productService.findTopProducts();
+
+const title = "Kufumi";
+const description = `Kufumi es una tienda y ecommerce de productos anime, videjuegos y series que implementa mecanicas unicas para enriquecer tu experiencia.`
 ---
 
-<BaseLayout title="Shop">
+<BaseLayout title={title} description={description} robots="index, follow">
 	<main class="py-2 space-y-4">
-
 		<BaseSection width="lg" title="Productos destacados" subtitle="Los productos mas solicitados durante este mes">
 			<div class="flex flex-col">
 				<div class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
 
-					{topProducts.map((product, index)=>(
-						<ProductCard position={index + 1}  prev="destacado" id={product.id} title={product.name} cost={product.value} image={product.image}></ProductCard>
+					{topProducts.map((popularProduct, index)=>(
+						<PopularProductCard popularProduct={popularProduct}></PopularProductCard>
 					))}
 				</div>
 		
@@ -33,7 +36,7 @@ const topProducts = await productService.findTopProducts();
 				<div class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
 
 					{products.map((product)=>(
-						<ProductCard  id={product.id} title={product.name} cost={product.value} image={product.image}></ProductCard>
+						<ProductCard  product={product}></ProductCard>
 					))}
 				</div>
 		

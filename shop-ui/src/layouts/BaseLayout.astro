@@ -3,9 +3,11 @@ import { ViewTransitions } from "astro:transitions";
 import Navbar from "../features/navbar/Navbar.astro";
 
 interface Props {
-  title: string
+  title: string,
+	description: string,
+	robots: "index, follow" | "noindex, nofollow" | "noindex, follow" | "index, nofollow"
 }
-const { title } = Astro.props;
+const { title, description, robots } = Astro.props;
 ---
 
 <html lang="es" >
@@ -15,6 +17,10 @@ const { title } = Astro.props;
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
+
+		<meta name="description" content={description}>
+		<meta name="author" content="Erick Martínez Fuentes">
+		<meta name="robots" content={robots}>
 		<ViewTransitions></ViewTransitions>
 		<script>
 			import '../scripts/client-setup'

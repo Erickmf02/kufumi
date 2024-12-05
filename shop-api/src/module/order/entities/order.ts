@@ -1,9 +1,10 @@
-import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { OrderItem } from "./order-item";
 import { TransbankOrderPayment } from "../../external/transbank/entities/transbank-order-payment";
 import { PaymentProvider } from "../enums/PaymentProvider.enum";
 import { Client } from "./client";
 import { OrderStatus } from "../enums/OrderStatus";
+import { User } from "src/module/user/entities/user";
 
 @Entity()
 export class Order {
@@ -17,10 +18,11 @@ export class Order {
   paymentProvider: PaymentProvider;
 
   @Column()
-  token: string;
-
-  @Column()
   value: number;
+
+  // Optional
+  @Column({ nullable: true })
+  token: string;
 
   // Defaults
   @Column({
@@ -30,11 +32,10 @@ export class Order {
   })
   status: OrderStatus;
 
-  @Column({
+  @CreateDateColumn({
     type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
   })
-  createdAt: Date;
+  createdAt: Date
 
   // Relations
   @OneToMany(() => OrderItem, (o) => o.order, { cascade: true })
@@ -45,5 +46,7 @@ export class Order {
 
   @OneToOne(() => TransbankOrderPayment, (t) => t.order)
   transbankOrderPayment?: TransbankOrderPayment;
-  
+
+  @ManyToOne(()=> User, (u) => u.orders)
+  user?: User
 }

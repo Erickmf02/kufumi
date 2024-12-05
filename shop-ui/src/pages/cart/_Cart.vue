@@ -7,25 +7,21 @@ import CartPayment from './_components/CartPayment.vue';
 import LoadingPage from '../../components/vue/LoadingPage.vue';
 import type { Cart } from '../../stores/cart2.store';
 import CartPaymentProvider from './_components/CartPaymentProvider.vue';
+import { ProductService, type Product } from '../../services/product.service';
 
 // Props y servicios
 interface Props {
   clientApiUrl: string;
 }
 const { clientApiUrl } = defineProps<Props>();
+const productService = new ProductService(clientApiUrl);
 
 // Estado reactivo
-const cart = ref<Cart | undefined>();
 const isLoading = ref(true);
+const cart = ref<Cart | undefined>();
+const products = ref<Product[]>([]);
 
 let unsubscribe: () => void;
-
-// Estado del formulario reactivo
-const form = reactive<any>({
-  paymentProvider: 'transbank',
-  client: {},
-  items: [],
-});
 
 // Función para obtener los productos del carrito
 
@@ -33,16 +29,20 @@ const form = reactive<any>({
 // Manejo al montar el componente
 const initializeCart = async () => {
   cart.value = cartService.getCart();
+  await fetchCartProducts(cart.value.items);
+
   unsubscribe = cartService.subscribe((newCart) => (cart.value = newCart));
-
-  form.items = cart.value.items.map((item: any) => ({
-    id: item.product.id,
-    stock: item.stock,
-  }));
-
   isLoading.value = false;
 };
 
+const fetchCartProducts = async (items: any) => {
+  try {
+    const productIds = items.map((item: any) => item.product.id);
+    products.value = await productService.findMany(productIds);
+  } catch (error) {
+    console.error('Error al obtener los productos del carrito:', error);
+  }
+};
 // Lifecycle hooks
 onMounted(async () => {
   if (!cartService.wasLoaded) {
@@ -63,11 +63,6 @@ function validateForm(): boolean {
   let isValid = true;
   if(!isClientValid) {
     cartClientForm.value!.forceValidate();
-    isValid = false;
-  }
-
-  const isProductsValid = cartProducts.value!.getFormStatus().isValid;
-  if(!isProductsValid){
     isValid = false;
   }
 
@@ -94,7 +89,7 @@ function getForm(){
   <LoadingPage v-if="isLoading"></LoadingPage>
   <div class="h-full p-2 space-y-4 flex flex-col items-center" v-else-if="cart && cart!.items.length > 0">
 
-    <CartProducts ref="cart-products" :client-api-url="clientApiUrl" :items="cart!.items" />
+    <CartProducts ref="cart-products" :client-api-url="clientApiUrl" :items="cart!.items" :products="products" />
 
     <CartClientForm ref="cart-client-form" />
 

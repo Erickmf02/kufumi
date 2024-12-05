@@ -4,7 +4,7 @@ import { createStore } from 'zustand/vanilla';
 export interface Cart {
   items: {
     product: Product,
-    stock: number
+    quantity: number
   }[]
 }
 

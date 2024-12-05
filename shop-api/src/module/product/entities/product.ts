@@ -1,5 +1,6 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { OrderItem } from "../order/entities/order-item";
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { OrderItem } from "../../order/entities/order-item";
+import { Character } from "src/module/character/entities/character";
 
 @Entity()
 export class Product {
@@ -11,6 +12,9 @@ export class Product {
 
   @Column()
   description: string
+
+  @Column()
+  shortDescription: string
   
   @Column()
   value: number
@@ -26,12 +30,17 @@ export class Product {
 
   // Default
   @Column({
+    default: 0
+  })
+  purchases: number
+
+  @Column({
     default: true
   })
   isActive: boolean
 
-  @Column({
-    default: new Date()
+  @CreateDateColumn({
+    type: 'timestamp',
   })
   createdAt: Date
 
@@ -39,4 +48,7 @@ export class Product {
   // Relations
   @OneToMany(() => OrderItem, (orderItem) => orderItem.product)
   orderItems?: OrderItem[];
+
+  @ManyToOne(()=> Character)
+  character?: Character
 }

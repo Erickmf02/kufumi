@@ -2,6 +2,7 @@
 import NavbarCartButton from "./NavbarCartButton.vue"
 import NavbarDrawer from "./NavbarDrawer.vue"
 import NavbarDrawerButton from "./NavbarDrawerButton.vue"
+import NavbarSessionButton from "./NavbarSessionButton.vue"
 ---
 
 
@@ -11,6 +12,9 @@ import NavbarDrawerButton from "./NavbarDrawerButton.vue"
     <li>
       <NavbarCartButton client:load transition:persist="navbar-cart-button">
       </NavbarCartButton>
+    </li>
+    <li>
+      <NavbarSessionButton clientApiUrl={import.meta.env.CLIENT_API_URL} client:load transition:persist="navbar-session-button"></NavbarSessionButton>
     </li>
     <li>
       <NavbarDrawerButton client:load></NavbarDrawerButton>

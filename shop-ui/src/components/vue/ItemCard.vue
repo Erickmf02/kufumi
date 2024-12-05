@@ -4,9 +4,9 @@ import type { Product } from '../../services/product.service';
 import { cartService } from '../../services/cart2.service';
 
 // Props
-const { product, stock, max } = defineProps<{
+const { product, quantity, max } = defineProps<{
   product: Product
-  stock: number,
+  quantity: number,
   max?: number
 }>()
 
@@ -63,7 +63,7 @@ function handleRemove() {
           class="w-16 px-2 py-1 border rounded text-sm text-gray-800"
           min="1"
           :max="max"
-          :value="stock"
+          :value="quantity"
         />
         <IconButton @on-click="handleRemove" variant="black">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">

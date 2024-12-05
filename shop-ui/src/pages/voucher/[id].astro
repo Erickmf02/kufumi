@@ -45,9 +45,12 @@ const translateStatus = (status: number) => {
       return "Estado desconocido";
   }
 };
+
+const title = "Voucher - detalles de compra";
+const description = `Analiza los detalles de tu compra aquí`
 ---
 
-<BaseLayout title="Voucher - Detalles de compra">
+<BaseLayout title={title} description={description} robots="noindex, nofollow">
   {error ? (
     <ErrorMessage message={error} />
   ) : order && (

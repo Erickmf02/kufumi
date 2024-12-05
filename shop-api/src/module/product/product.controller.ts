@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Post, Query } from "@nestjs/common";
-import { CreateProductDto } from "./product.dto";
+import { CreateProductDto } from "./dto/create-product.dto";
 import { ProductService } from "./product.service";
 import { ParsePositiveIntPipe } from "src/common/pipes/parse-positive-int.pipe";
 import { ParsePositiveIntArrayPipe } from "src/common/pipes/parse-positive-int-array.pipe";
@@ -29,6 +29,13 @@ export class ProductController {
     return await this.productService.findMany(ids);
   }
 
+  @Get('top-products/:position')
+  async getTopProductsRecentPosition(
+    @Param('position', ParsePositiveIntPipe) position: number
+  ) {
+    return this.productService.findProductByPopularity(position);
+  }
+
   @Get('top-products')
   async getTopProductsRecent() {
     return this.productService.findTopProductsRecent();
@@ -39,6 +46,6 @@ export class ProductController {
   async findOne(
     @Param('id', ParsePositiveIntPipe) id: number
   ){
-    return await this.productService.findOne(id);
+    return await this.productService.handleFindById(id);
   }
 }

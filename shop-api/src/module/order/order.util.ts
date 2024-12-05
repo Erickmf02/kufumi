@@ -2,17 +2,15 @@ import { randomBytes } from "crypto"
 
 
 interface getTotalValueParameters {
-  stock: number
+  quantity: number
   product: {
     value: number
   }
 }
 
-
-
 export function calculateOrderValue(items: getTotalValueParameters[]): number {
   return items.reduce((total, item) => {
-    return total + item.stock * item.product.value;
+    return total + item.quantity * item.product.value;
   }, 0);
 }
 
